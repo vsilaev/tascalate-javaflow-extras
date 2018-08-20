@@ -666,5 +666,10 @@ public class SuspendableStream<T> implements AutoCloseable {
         extends SuspendableFunction<SuspendableStream<? extends T>, Option<? extends T>> {}
     
     private static final Supplier<?> NONE_SUPPLIER = () -> Option.none();
-    private static final SuspendableSupplier<?> NONE_SUPPLIER$ = () -> Option.none();
+    private static final SuspendableSupplier<?> NONE_SUPPLIER$ = new SuspendableSupplier<Object>() {
+        @Override
+        public Object get() {
+            return Option.none();
+        }
+    };
 }
