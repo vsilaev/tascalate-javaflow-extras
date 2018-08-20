@@ -2,8 +2,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>net.tascalate.javaflow.util</groupId>
-	<artifactId>lib</artifactId>
-	<version>0.9.0</version>
+	<artifactId>net.tascalate.javaflow.util.lib</artifactId>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<parent>
@@ -42,7 +42,7 @@
 	</contributors>
 
 	<properties>
-		<tascalate.javaflow.version>2.2.3</tascalate.javaflow.version>
+		<tascalate.javaflow.version>2.3.0</tascalate.javaflow.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 

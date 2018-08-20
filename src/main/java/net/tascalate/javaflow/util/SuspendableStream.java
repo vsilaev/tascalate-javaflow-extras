@@ -640,12 +640,12 @@ public class SuspendableStream<T> implements AutoCloseable {
     
     @SuppressWarnings("unchecked")
     private static <T> Supplier<Option<T>> toValueSupplier(Supplier<? extends T> s) {
-        return s != null ? () -> Option.some(s.get()) : (Supplier<Option<T>>)NONE_SUPPLIER_R;
+        return s != null ? () -> Option.some(s.get()) : (Supplier<Option<T>>)NONE_SUPPLIER;
     }
     
     @SuppressWarnings("unchecked")
     private static <T> SuspendableSupplier<Option<T>> toValueSupplier(SuspendableSupplier<? extends T> s) {
-        return s != null ? () -> Option.some(s.get()) : (SuspendableSupplier<Option<T>>)NONE_SUPPLIER_C;
+        return s != null ? () -> Option.some(s.get()) : (SuspendableSupplier<Option<T>>)NONE_SUPPLIER$;
     }
 
     private static <T> Optional<T> toOptional(Option<T> maybeValue) {
@@ -665,6 +665,6 @@ public class SuspendableStream<T> implements AutoCloseable {
     private static interface StreamToOption<T> 
         extends SuspendableFunction<SuspendableStream<? extends T>, Option<? extends T>> {}
     
-    private static final Supplier<?> NONE_SUPPLIER_R = () -> Option.none();
-    private static final SuspendableSupplier<?> NONE_SUPPLIER_C = () -> Option.none();
+    private static final Supplier<?> NONE_SUPPLIER = () -> Option.none();
+    private static final SuspendableSupplier<?> NONE_SUPPLIER$ = () -> Option.none();
 }
