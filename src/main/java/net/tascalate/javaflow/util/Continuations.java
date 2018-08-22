@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +36,7 @@ import org.apache.commons.javaflow.api.Continuation;
 import org.apache.commons.javaflow.api.continuable;
 
 import net.tascalate.javaflow.util.function.SuspendableConsumer;
+import net.tascalate.javaflow.util.function.SuspendableFunction;
 import net.tascalate.javaflow.util.function.SuspendableRunnable;
 
 final public class Continuations {
@@ -106,8 +108,8 @@ final public class Continuations {
     }
 
     /**
-     * Executes the suspended continuation from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable action 
+     * Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a non-suspendable <code>action</code> 
      * on each value yielded.
      * 
      * @param <T> a type of values  
@@ -119,8 +121,8 @@ final public class Continuations {
     }
     
     /**
-     * Executes the suspended continuation from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable action 
+     * Executes the suspended <code>continuation from the point specified till the end 
+     * of the corresponding code block and performs a non-suspendable <code>action</code> 
      * on each value yielded.
      * 
      * @param <T> a type of values  
@@ -138,7 +140,7 @@ final public class Continuations {
     
     /**
      * Fully executes the continuable code block and performs a non-suspendable 
-     * action on each value yielded.
+     * <code>action</code> on each value yielded.
      * 
      * @param <T> a type of values 
      * @param generator a continuable code block that yields multiple results
@@ -150,33 +152,100 @@ final public class Continuations {
 
     
     /**
-     * Executes the suspended continuation from the point specified till the end 
-     * of the corresponding code block and performs a potentially suspendable action 
+     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a non-suspendable <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then the output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * 
+     * @param <T> a type of values  
+     * @param continuation a continuation to resume a code block that yields multiple results 
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */      
+    public static <T> void executePipe(Continuation continuation, Function<? super T, ?> action) {
+        executePipe(continuation, false, action);
+    }
+    
+    /**
+     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a non-suspendable <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>If <code>useCurrentValue</code> is false then the continuation is resumed with <code>null<code> for the first time.  
+     * 
+     * @param <T> a type of values  
+     * @param continuation a continuation to resume a code block that yields multiple results 
+     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */    
+    public static <T> void executePipe(Continuation continuation, boolean useCurrentValue, Function<? super T, ?> action) {
+        Continuation cc = continuation;
+        try {
+            Object param = null;
+            if (null != cc && useCurrentValue) {
+                param = action.apply(valueOf(cc));
+            } else {
+                param = null;
+            }
+            while (null != cc) {
+                cc = cc.resume(param);
+                param = action.apply(valueOf(cc));
+            }
+        } finally {
+            if (null != cc) {
+                cc.terminate();
+            }
+        }
+    }
+    
+    /**
+     * <p>Fully executes the continuable code block and performs a non-suspendable <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * 
+     * @param <T> a type of values  
+     * @param generator a continuable code block that yields multiple results 
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */       
+    public static <T> void executePipe(SuspendableRunnable generator, Function<? super T, ?> action) {
+        executePipe(create(generator), action);
+    }
+    
+    /**
+     * Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
      * on each value yielded.
      * 
      * @param <T> a type of values  
      * @param continuation a continuation to resume a code block that yields multiple results
      * @param action a continuable action to perform on the values yielded
      */
-    public @continuable static <T> void execute$(Continuation continuation, SuspendableConsumer<? super T> action) {
+    public static @continuable<T> void execute$(Continuation continuation, SuspendableConsumer<? super T> action) {
         execute$(continuation, false, action);
     }
     
     /**
-     * Fully executes the continuable code block and performs a potentially suspendable 
-     * action on each value yielded.
-     * 
-     * @param <T> a type of values 
-     * @param generator a continuable code block that yields multiple results
-     * @param action a continuable action to perform on the values yielded
-     */
-    public @continuable static <T> void execute$(SuspendableRunnable generator, SuspendableConsumer<? super T> action) {
-        execute$(create(generator), false, action);
-    }
-    
-    /**
-     * Executes the suspended continuation from the point specified till the end 
-     * of the corresponding code block and performs a potentially suspendable action 
+     * Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
      * on each value yielded.
      * 
      * @param <T> a type of values  
@@ -184,14 +253,105 @@ final public class Continuations {
      * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
      * @param action a continuable action to perform on the values yielded
      */
-    public @continuable static <T> void execute$(Continuation continuation, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
+    public static @continuable<T> void execute$(Continuation continuation, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
         try (CloseableIterator<T> iter = iterate(continuation, useCurrentValue)) {
             forEach$(iter, action);
         }
     }
+    
+    /**
+     * Fully executes the continuable code block and performs a potentially <b>suspendable</b> 
+     * <code>action</code> on each value yielded.
+     * 
+     * @param <T> a type of values 
+     * @param generator a continuable code block that yields multiple results
+     * @param action a continuable action to perform on the values yielded
+     */
+    public static @continuable<T> void execute$(SuspendableRunnable generator, SuspendableConsumer<? super T> action) {
+        execute$(create(generator), false, action);
+    }
+    
+    /**
+     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then the output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * 
+     * @param <T> a type of values  
+     * @param continuation a continuation to resume a code block that yields multiple results 
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */      
+    public static @continuable<T> void executePipe$(Continuation continuation, SuspendableFunction<? super T, ?> action) {
+        executePipe$(continuation, false, action);
+    }
+    
+    /**
+     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
+     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>If <code>useCurrentValue</code> is false then the continuation is resumed with <code>null<code> for the first time.  
+     * 
+     * @param <T> a type of values  
+     * @param continuation a continuation to resume a code block that yields multiple results 
+     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */    
+    public static @continuable<T> void executePipe$(Continuation continuation, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
+        Continuation cc = continuation;
+        try {
+            Object param = null;
+            if (null != cc && useCurrentValue) {
+                param = action.apply(valueOf(cc));
+            } else {
+                param = null;
+            }
+            while (null != cc) {
+                cc = cc.resume(param);
+                param = action.apply(valueOf(cc));
+            }
+        } finally {
+            if (null != cc) {
+                cc.terminate();
+            }
+        }
+    }
+    
+    /**
+     * <p>Fully executes the continuable code block and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value yielded. The value returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * 
+     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
+     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * 
+     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * 
+     * @param <T> a type of values  
+     * @param generator a continuable code block that yields multiple results 
+     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * resume continuation.
+     */       
+    public static @continuable<T> void executePipe$(SuspendableRunnable generator, SuspendableFunction<? super T, ?> action) {
+        executePipe$(create(generator), action);
+    }    
 
     /**
-     * Performs an continuable action for each element of the {@link Stream} supplied.
+     * Performs the <b>continuable</b> <code>action</code> for each element of the {@link Stream} supplied.
      *
      * <p>This is a terminal operation that should be used instead of 
      * {@link Stream#forEach(java.util.function.Consumer)} with continuable code.
@@ -200,12 +360,12 @@ final public class Continuations {
      * @param stream the stream to perform an action on
      * @param action a continuable action to perform on the elements
      */    
-    public @continuable static <T> void forEach$(Stream<T> stream, SuspendableConsumer<? super T> action) {
+    public static @continuable<T> void forEach$(Stream<T> stream, SuspendableConsumer<? super T> action) {
         forEach$(stream.iterator(), action);
     }
 
     /**
-     * Performs an continuable action for each element of the {@link Iterable} supplied.
+     * Performs the <b>continuable</b> <code>action</code> for each element of the {@link Iterable} supplied.
      *
      * <p>This is a convenient functional replacement for the Java 7 For-Each Loop
      * over {@link Iterable}.
@@ -214,7 +374,7 @@ final public class Continuations {
      * @param iterable the iterable to perform an action on
      * @param action a continuable action to perform on the elements
      */   
-    public @continuable static <T> void forEach$(Iterable<T> iterable, SuspendableConsumer<? super T> action) {
+    public static @continuable<T> void forEach$(Iterable<T> iterable, SuspendableConsumer<? super T> action) {
         Iterator<T> iter = iterable.iterator();
         try (CloseableIterator<T> closeable = asCloseable(iter)) {
             forEach$(iter, action);
@@ -222,7 +382,7 @@ final public class Continuations {
     }
 
     /**
-     * Performs an continuable action for each element of the {@link Iterator} supplied.
+     * Performs the <b>continuable</b> <code>action</code> for each element of the {@link Iterator} supplied.
      *
      * <p>This is a convenient functional replacement for the classic Java While Loop 
      * over {@link Iterator}.
@@ -231,7 +391,7 @@ final public class Continuations {
      * @param iterator the iterator to perform an action on
      * @param action a continuable action to perform on the elements
      */ 
-    public @continuable static <T> void forEach$(Iterator<T> iterator, SuspendableConsumer<? super T> action) {
+    private @continuable static <T> void forEach$(Iterator<T> iterator, SuspendableConsumer<? super T> action) {
         while (iterator.hasNext()) {
             action.accept(iterator.next());
         }
@@ -257,4 +417,8 @@ final public class Continuations {
         return o instanceof CloseableIterator ? (CloseableIterator<E>)o : null;
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T valueOf(Continuation continuation) {
+        return (T)continuation.value();
+    }
 }
