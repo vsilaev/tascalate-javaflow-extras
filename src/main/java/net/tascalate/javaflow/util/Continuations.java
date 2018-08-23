@@ -79,59 +79,107 @@ final public class Continuations {
         return Continuation.startWith(toRunnable(o));
     }
 
-    public static <T> CloseableIterator<T> iterate(Continuation continuation) {
-        return iterate(continuation, false);
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Iterator} of emitted values
+     * 
+     * <p>The current value of the coroutine is not used 
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @return the iterator over emitted values
+     */
+    public static <T> CloseableIterator<T> iteratorOf(Continuation coroutine) {
+        return iteratorOf(coroutine, false);
     }
     
-    public static <T> CloseableIterator<T> iterate(Continuation continuation, boolean useCurrentValue) {
-        return new ContinuationIterator<>(continuation, useCurrentValue);
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Iterator} of emitted values
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @param useCurrentValue should the current coroutine result be used as a first value to return 
+     * @return the iterator over emitted values
+     */
+    public static <T> CloseableIterator<T> iteratorOf(Continuation coroutine, boolean useCurrentValue) {
+        return new ContinuationIterator<>(coroutine, useCurrentValue);
     }
     
-    
-    public static <T> CloseableIterator<T> iterate(SuspendableRunnable generator) {
-        return iterate(create(generator), false);
+
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Iterator} of emitted values
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @return the iterator over emitted values
+     */    
+    public static <T> CloseableIterator<T> iteratorOf(SuspendableRunnable coroutine) {
+        return iteratorOf(create(coroutine), false);
     }
     
-    public static <T> Stream<T> stream(Continuation continuation) {
-        return stream(continuation, false);
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Stream} of emitted values
+     * 
+     * <p>The current value of the coroutine is not used 
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @return the iterator over emitted values
+     */    
+    public static <T> Stream<T> streamOf(Continuation coroutine) {
+        return streamOf(coroutine, false);
     }
     
-    public static <T> Stream<T> stream(Continuation continuation, boolean useCurrentValue) {
-        CloseableIterator<T> iterator = iterate(continuation, useCurrentValue);
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Stream} of emitted values
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @param useCurrentValue should the current coroutine result be used as a first value to return 
+     * @return the iterator over emitted values
+     */    
+    public static <T> Stream<T> streamOf(Continuation coroutine, boolean useCurrentValue) {
+        CloseableIterator<T> iterator = iteratorOf(coroutine, useCurrentValue);
         return StreamSupport
                .stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
                .onClose(iterator::close);
     }
 
-    public static <T> Stream<T> stream(SuspendableRunnable generator) {
-        return stream(create(generator), false);
+    /**
+     * <p>Convert a <code>coroutine</code> to the {@link Stream} of emitted values
+     * 
+     * @param <T> a type of values
+     * @param coroutine the source of emitted values
+     * @return the iterator over emitted values
+     */   
+    public static <T> Stream<T> streamOf(SuspendableRunnable coroutine) {
+        return streamOf(create(coroutine), false);
     }
 
     /**
-     * Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable <code>action</code> 
-     * on each value yielded.
+     * Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a non-suspendable <code>action</code> 
+     * on each value emitted.
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results
-     * @param action a non-continuable action to perform on the values yielded
+     * @param coroutine a coroutine that yields multiple results
+     * @param action a non-continuable action to perform on the values emitted
      */
-    public static <T> void execute(Continuation continuation, Consumer<? super T> action) {
-        execute(continuation, false, action);
+    public static <T> void forEach(Continuation coroutine, Consumer<? super T> action) {
+        forEach(coroutine, false, action);
     }
     
     /**
-     * Executes the suspended <code>continuation from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable <code>action</code> 
-     * on each value yielded.
+     * Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a non-suspendable <code>action</code> 
+     * on each value emitted.
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results
-     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
-     * @param action a non-continuable action to perform on the values yielded
+     * @param coroutine a coroutine that yields multiple results
+     * @param useCurrentValue should the current coroutine result be used as a first value to process
+     * @param action a non-continuable action to perform on the values emitted
      */
-    public static <T> void execute(Continuation continuation, boolean useCurrentValue, Consumer<? super T> action) {
-        try (CloseableIterator<T> iter = iterate(continuation, useCurrentValue)) {
+    public static <T> void forEach(Continuation coroutine, boolean useCurrentValue, Consumer<? super T> action) {
+        try (CloseableIterator<T> iter = iteratorOf(coroutine, useCurrentValue)) {
             while (iter.hasNext()) {
                 action.accept(iter.next());
             }
@@ -139,59 +187,59 @@ final public class Continuations {
     }
     
     /**
-     * Fully executes the continuable code block and performs a non-suspendable 
-     * <code>action</code> on each value yielded.
+     * Fully executes the <code>coroutine</code> and performs a non-suspendable 
+     * <code>action</code> on each value emitted.
      * 
      * @param <T> a type of values 
-     * @param generator a continuable code block that yields multiple results
-     * @param action a non-continuable action to perform on the values yielded
+     * @param coroutine a continuable code block that yields multiple results
+     * @param action a non-continuable action to perform on the values emitted
      */
-    public static <T> void execute(SuspendableRunnable generator, Consumer<? super T> action) {
-        execute(create(generator), action);
+    public static <T> void forEach(SuspendableRunnable coroutine, Consumer<? super T> action) {
+        forEach(create(coroutine), action);
     }
 
     
     /**
-     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Executes the suspended <code>coroutine</code> from the point specified till the  
+     * completion and performs a non-suspendable <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then the output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine code is over. 
      * 
-     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * <p>For the first time the coroutine is resumed with <code>null</code> as argument.  
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results 
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
-     * resume continuation.
+     * @param coroutine a coroutine that yields multiple results 
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
+     * resume coroutine.
      */      
-    public static <T> void executePipe(Continuation continuation, Function<? super T, ?> action) {
-        executePipe(continuation, false, action);
+    public static <T> void forEachReply(Continuation coroutine, Function<? super T, ?> action) {
+        forEachReply(coroutine, false, action);
     }
     
     /**
-     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a non-suspendable <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a non-suspendable <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine code is over. 
      * 
-     * <p>If <code>useCurrentValue</code> is false then the continuation is resumed with <code>null<code> for the first time.  
+     * <p>If <code>useCurrentValue</code> is false then the coroutine is resumed with <code>null</code> for the first time.  
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results 
-     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
-     * resume continuation.
+     * @param coroutine a coroutine that yields multiple results 
+     * @param useCurrentValue should the current coroutine result be used as a first value to process
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
+     * resume coroutine.
      */    
-    public static <T> void executePipe(Continuation continuation, boolean useCurrentValue, Function<? super T, ?> action) {
-        Continuation cc = continuation;
+    public static <T> void forEachReply(Continuation coroutine, boolean useCurrentValue, Function<? super T, ?> action) {
+        Continuation cc = coroutine;
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
@@ -211,107 +259,107 @@ final public class Continuations {
     }
     
     /**
-     * <p>Fully executes the continuable code block and performs a non-suspendable <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Fully executes the coroutine and performs a non-suspendable <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine is finished. 
      * 
-     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * <p>For the first time the coroutine is resumed with <code>null</code> as argument.  
      * 
      * @param <T> a type of values  
-     * @param generator a continuable code block that yields multiple results 
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
+     * @param coroutine a coroutine that yields multiple results 
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
      * resume continuation.
      */       
-    public static <T> void executePipe(SuspendableRunnable generator, Function<? super T, ?> action) {
-        executePipe(create(generator), action);
+    public static <T> void forEachReply(SuspendableRunnable coroutine, Function<? super T, ?> action) {
+        forEachReply(create(coroutine), action);
     }
     
     /**
-     * Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
-     * on each value yielded.
+     * Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value emitted.
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results
-     * @param action a continuable action to perform on the values yielded
+     * @param coroutine a coroutine that yields multiple results
+     * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void execute$(Continuation continuation, SuspendableConsumer<? super T> action) {
-        execute$(continuation, false, action);
+    public static @continuable<T> void forEach$(Continuation coroutine, SuspendableConsumer<? super T> action) {
+        forEach$(coroutine, false, action);
     }
     
     /**
-     * Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
-     * on each value yielded.
+     * Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value emitted.
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results 
-     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
-     * @param action a continuable action to perform on the values yielded
+     * @param coroutine a coroutine  that yields multiple results 
+     * @param useCurrentValue should the current coroutine result be used as a first value to process
+     * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void execute$(Continuation continuation, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
-        try (CloseableIterator<T> iter = iterate(continuation, useCurrentValue)) {
+    public static @continuable<T> void forEach$(Continuation coroutine, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
+        try (CloseableIterator<T> iter = iteratorOf(coroutine, useCurrentValue)) {
             forEach$(iter, action);
         }
     }
     
     /**
-     * Fully executes the continuable code block and performs a potentially <b>suspendable</b> 
-     * <code>action</code> on each value yielded.
+     * Fully executes the coroutine and performs a potentially <b>suspendable</b> 
+     * <code>action</code> on each value emitted.
      * 
      * @param <T> a type of values 
-     * @param generator a continuable code block that yields multiple results
-     * @param action a continuable action to perform on the values yielded
+     * @param coroutine a coroutine that yields multiple results
+     * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void execute$(SuspendableRunnable generator, SuspendableConsumer<? super T> action) {
-        execute$(create(generator), false, action);
+    public static @continuable<T> void forEach$(SuspendableRunnable coroutine, SuspendableConsumer<? super T> action) {
+        forEach$(create(coroutine), false, action);
     }
     
     /**
-     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then the output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine is finished. 
      * 
-     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * <p>For the first time the coroutine is resumed with <code>null</code> as argument.  
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results 
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
-     * resume continuation.
+     * @param coroutine a coroutine that yields multiple results 
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
+     * resume coroutine.
      */      
-    public static @continuable<T> void executePipe$(Continuation continuation, SuspendableFunction<? super T, ?> action) {
-        executePipe$(continuation, false, action);
+    public static @continuable<T> void forEachReply$(Continuation coroutine, SuspendableFunction<? super T, ?> action) {
+        forEachReply$(coroutine, false, action);
     }
     
     /**
-     * <p>Executes the suspended <code>continuation</code> from the point specified till the end 
-     * of the corresponding code block and performs a potentially <b>suspendable</b> <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Executes the suspended <code>coroutine</code> from the point specified till the 
+     * completion and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine is finished. 
      * 
-     * <p>If <code>useCurrentValue</code> is false then the continuation is resumed with <code>null<code> for the first time.  
+     * <p>If <code>useCurrentValue</code> is false then the coroutine is resumed with <code>null</code> for the first time.  
      * 
      * @param <T> a type of values  
-     * @param continuation a continuation to resume a code block that yields multiple results 
-     * @param useCurrentValue should the value of the supplied continuation be used as a first value to process
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
-     * resume continuation.
+     * @param coroutine a coroutine that yields multiple results 
+     * @param useCurrentValue should the current coroutine result be used as a first value to process
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
+     * resume coroutine.
      */    
-    public static @continuable<T> void executePipe$(Continuation continuation, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
-        Continuation cc = continuation;
+    public static @continuable<T> void forEachReply$(Continuation coroutine, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
+        Continuation cc = coroutine;
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
@@ -331,23 +379,23 @@ final public class Continuations {
     }
     
     /**
-     * <p>Fully executes the continuable code block and performs a potentially <b>suspendable</b> <code>action</code> 
-     * on each value yielded. The value returned from the <code>action</code> invocation is 
-     * used further as a parameter to resume the suspended <code>continuation</code> (see {@link Continuation#resume(Object)}).
+     * <p>Fully executes the coroutine and performs a potentially <b>suspendable</b> <code>action</code> 
+     * on each value emitted. The reply returned from the <code>action</code> invocation is 
+     * used further as a parameter to resume the suspended <code>coroutine</code> (see {@link Continuation#resume(Object)}).
      * 
-     * <p>In other words, the current value of the suspended <code>continuation</code> is used as an input to 
+     * <p>In other words, the latest value emitted from the <code>coroutine</code> is used as an input to 
      * the <code>action</code>, then output of the <code>action</code> is used as an input to the resumed 
-     * <code>continuation</code> and so on in "ring pipe" fashion till the continuable code is over. 
+     * <code>coroutine</code> and so on in "ring pipe" fashion till the coroutine is finished. 
      * 
-     * <p>For the first time the continuation is resumed with <code>null<code> as argument.  
+     * <p>For the first time the coroutine is resumed with <code>null</code> as argument.  
      * 
      * @param <T> a type of values  
-     * @param generator a continuable code block that yields multiple results 
-     * @param action a non-continuable function that is applied to values yielded and provides argument to
-     * resume continuation.
+     * @param coroutine a corotine that yields multiple results 
+     * @param action a non-continuable function that is applied to values emitted and provides argument to
+     * resume coroutine.
      */       
-    public static @continuable<T> void executePipe$(SuspendableRunnable generator, SuspendableFunction<? super T, ?> action) {
-        executePipe$(create(generator), action);
+    public static @continuable<T> void forEachReply$(SuspendableRunnable coroutine, SuspendableFunction<? super T, ?> action) {
+        forEachReply$(create(coroutine), action);
     }    
 
     /**
@@ -395,6 +443,25 @@ final public class Continuations {
         while (iterator.hasNext()) {
             action.accept(iterator.next());
         }
+    }
+    
+    /**
+     * <p>A keyword-like syntactic sugar over {@link Continuation#suspend(Object)}.
+     * <p>It allows to write generators in the following fashion:
+     * <pre>
+     * Stream&lt;String&gt; strings = Continuations.streamOf(() -&gt; {
+     *     yield("A");
+     *     yield("B");
+     *     yield("C");
+     * });
+     * </pre>
+     *
+     * @param <T> a type of elements 
+     * @param value a value to yield
+     * @return an argument passed to resume coroutine
+     */
+    public static @continuable <T> Object yield(T value) {
+        return Continuation.suspend(value);
     }
     
     static Runnable toRunnable(SuspendableRunnable code) {
