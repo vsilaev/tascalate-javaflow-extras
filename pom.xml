@@ -3,7 +3,7 @@
 
 	<groupId>net.tascalate.javaflow.util</groupId>
 	<artifactId>net.tascalate.javaflow.util.lib</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<parent>
