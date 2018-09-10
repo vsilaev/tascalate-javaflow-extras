@@ -22,21 +22,28 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util;
+package net.tascalate.javaflow.function;
 
-import java.io.Closeable;
-import java.util.Iterator;
+import org.apache.commons.javaflow.api.continuable;
 
 /**
- * Iterator that additionally implements {@link Closeable} interface 
- * to execute clean-up when not fully iterated
- * 
- * @author vsilaev
+ * Represents a continuable supplier of results.
  *
- * @param <E>
- * Type of objects returned by the iterator 
+ * <p>There is no requirement that a new or distinct result be returned each
+ * time the supplier is invoked.
+ *
+ * <p>This is a functional interface
+ * whose functional method is {@link #get()}.
+ *
+ * @param <T> the type of results supplied by this supplier
+ *
  */
-public interface CloseableIterator<E> extends Iterator<E>, AutoCloseable {
-    @Override
-    void close();
+@FunctionalInterface
+public interface SuspendableSupplier<T> {
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     */
+    @continuable T get();
 }

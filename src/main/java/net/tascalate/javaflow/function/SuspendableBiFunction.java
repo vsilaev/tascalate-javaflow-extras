@@ -22,58 +22,35 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util.function;
+package net.tascalate.javaflow.function;
 
 import java.util.Objects;
-
 import org.apache.commons.javaflow.api.continuable;
 
 /**
- * Represents a continuable function that accepts one argument and produces a result.
+ * Represents a function that accepts two arguments and produces a result.
+ * This is the two-arity specialization of {@link SuspendableFunction}.
  *
  * <p>This is a functional interface
- * whose functional method is {@link #apply(Object)}.
+ * whose functional method is {@link #apply(Object, Object)}.
  *
- * @param <T> the type of the input to the function
+ * @param <T> the type of the first argument to the function
+ * @param <U> the type of the second argument to the function
  * @param <R> the type of the result of the function
  *
+ * @see SuspendableFunction
  */
 @FunctionalInterface
-public interface SuspendableFunction<T, R> {
+public interface SuspendableBiFunction<T, U, R> {
 
     /**
-     * Applies this function to the given argument.
+     * Applies this function to the given arguments.
      *
-     * @param t the function argument
+     * @param t the first function argument
+     * @param u the second function argument
      * @return the function result
      */
-    @continuable R apply(T t);
-
-    /**
-     * Returns a composed function that first applies the {@code before}
-     * function to its input, and then applies this function to the result.
-     * If evaluation of either function throws an exception, it is relayed to
-     * the caller of the composed function.
-     *
-     * @param <V> the type of input to the {@code before} function, and to the
-     *           composed function
-     * @param before the function to apply before this function is applied
-     * @return a composed function that first applies the {@code before}
-     * function and then applies this function
-     * @throws NullPointerException if before is null
-     *
-     * @see #andThen(SuspendableFunction)
-     */
-    default <V> SuspendableFunction<V, R> compose(SuspendableFunction<? super V, ? extends T> before) {
-        Objects.requireNonNull(before);
-        SuspendableFunction<T, R> self = this;
-        return new SuspendableFunction<V, R>() {
-            @Override
-            public R apply(V v) {
-                return self.apply(before.apply(v));                
-            }
-        };
-    }
+    @continuable R apply(T t, U u);
 
     /**
      * Returns a composed function that first applies this function to
@@ -87,31 +64,14 @@ public interface SuspendableFunction<T, R> {
      * @return a composed function that first applies this function and then
      * applies the {@code after} function
      * @throws NullPointerException if after is null
-     *
-     * @see #compose(SuspendableFunction)
      */
-    default <V> SuspendableFunction<T, V> andThen(SuspendableFunction<? super R, ? extends V> after) {
+    default <V> SuspendableBiFunction<T, U, V> andThen(SuspendableFunction<? super R, ? extends V> after) {
         Objects.requireNonNull(after);
-        SuspendableFunction<T, R> self = this;
-        return new SuspendableFunction<T, V>() {
+        SuspendableBiFunction<T, U, R> self = this;
+        return new SuspendableBiFunction<T, U, V>() {
             @Override
-            public V apply(T v) {
-                return after.apply(self.apply(v));                
-            }
-        };
-    }
-
-    /**
-     * Returns a function that always returns its input argument.
-     *
-     * @param <T> the type of the input and output objects to the function
-     * @return a function that always returns its input argument
-     */
-    static <T> SuspendableFunction<T, T> identity() {
-        return new SuspendableFunction<T, T>() {
-            @Override
-            public T apply(T v) {
-                return v;                
+            public V apply(T t, U u) {
+                return after.apply(self.apply(t, u));                
             }
         };
     }

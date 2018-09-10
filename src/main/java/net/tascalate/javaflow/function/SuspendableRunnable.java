@@ -22,11 +22,17 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util;
+package net.tascalate.javaflow.function;
 
 import org.apache.commons.javaflow.api.continuable;
 
-public interface SuspendableProducer<T> extends AutoCloseable {
-    @continuable Option<T> produce();
-    void close();
+/**
+ * Continuable version of Runnable 
+ */
+@FunctionalInterface
+public interface SuspendableRunnable {
+	/**
+	 * Run method re-declared as continuable
+	 */
+	@continuable void run();
 }

@@ -22,57 +22,52 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util.function;
+package net.tascalate.javaflow.function;
 
 import java.util.Objects;
 
 import org.apache.commons.javaflow.api.continuable;
 
 /**
- * Represents a continuable operation that accepts two input arguments and returns no
- * result.  This is the two-arity specialization of {@link SuspendableConsumer}.
- * Unlike most other functional interfaces, {@code ContinuableBiConsumer} is expected
+ * Represents an continuable operation that accepts a single input argument and returns no
+ * result. Unlike most other functional interfaces, {@code ContinuableConsumer} is expected
  * to operate via side-effects.
  *
- * <p>This is a functional interface
- * whose functional method is {@link #accept(Object, Object)}.
+ * <p>This is a functional interface whose functional method is {@link #accept(Object)}.
  *
- * @param <T> the type of the first argument to the operation
- * @param <U> the type of the second argument to the operation
+ * @param <T> the type of the input to the operation
  *
- * @see SuspendableConsumer
  */
 @FunctionalInterface
-public interface SuspendableBiConsumer<T, U> {
-
+public interface SuspendableConsumer<T> {
+    
     /**
-     * Performs this operation on the given arguments.
+     * Performs this operation on the given argument.
      *
-     * @param t the first input argument
-     * @param u the second input argument
+     * @param t the input argument
      */
-    @continuable void accept(T t, U u);
-
+    @continuable void accept(T t);
+    
     /**
-     * Returns a composed {@code ContinuableBiConsumer} that performs, in sequence, this
+     * Returns a composed {@code ContinuableConsumer} that performs, in sequence, this
      * operation followed by the {@code after} operation. If performing either
      * operation throws an exception, it is relayed to the caller of the
      * composed operation.  If performing this operation throws an exception,
      * the {@code after} operation will not be performed.
      *
      * @param after the operation to perform after this operation
-     * @return a composed {@code ContinuableBiConsumer} that performs in sequence this
+     * @return a composed {@code ContinuableConsumer} that performs in sequence this
      * operation followed by the {@code after} operation
      * @throws NullPointerException if {@code after} is null
      */
-    default SuspendableBiConsumer<T, U> andThen(SuspendableBiConsumer<? super T, ? super U> after) {
+    default SuspendableConsumer<T> andThen(SuspendableConsumer<? super T> after) {
         Objects.requireNonNull(after);
-        return new SuspendableBiConsumer<T, U>() {
-            @Override
-            public void accept(T t, U u) {
-                SuspendableBiConsumer.this.accept(t, u);
-                after.accept(t, u);
+        return new SuspendableConsumer<T>() {
+            public void accept(T t) {
+                SuspendableConsumer.this.accept(t);
+                after.accept(t);
             }
         };
     }
+
 }

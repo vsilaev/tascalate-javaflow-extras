@@ -22,17 +22,21 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util.function;
+package net.tascalate.javaflow;
 
-import org.apache.commons.javaflow.api.continuable;
+import java.io.Closeable;
+import java.util.Iterator;
 
 /**
- * Continuable version of Runnable 
+ * Iterator that additionally implements {@link Closeable} interface 
+ * to execute clean-up when not fully iterated
+ * 
+ * @author vsilaev
+ *
+ * @param <E>
+ * Type of objects returned by the iterator 
  */
-@FunctionalInterface
-public interface SuspendableRunnable {
-	/**
-	 * Run method re-declared as continuable
-	 */
-	@continuable void run();
+public interface CloseableIterator<E> extends Iterator<E>, AutoCloseable {
+    @Override
+    void close();
 }

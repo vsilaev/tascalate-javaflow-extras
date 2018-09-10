@@ -22,28 +22,35 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util.function;
-
-import org.apache.commons.javaflow.api.continuable;
+package net.tascalate.javaflow.function;
 
 /**
- * Represents a continuable supplier of results.
- *
- * <p>There is no requirement that a new or distinct result be returned each
- * time the supplier is invoked.
+ * Represents an continuable operation on a single operand that produces a result of the
+ * same type as its operand.  This is a specialization of {@code ContinuableFunction} for
+ * the case where the operand and result are of the same type.
  *
  * <p>This is a functional interface
- * whose functional method is {@link #get()}.
+ * whose functional method is {@link #apply(Object)}.
  *
- * @param <T> the type of results supplied by this supplier
+ * @param <T> the type of the operand and result of the operator
  *
+ * @see SuspendableFunction
  */
 @FunctionalInterface
-public interface SuspendableSupplier<T> {
+public interface SuspendableUnaryOperator<T> extends SuspendableFunction<T, T> {
+
     /**
-     * Gets a result.
+     * Returns a unary operator that always returns its input argument.
      *
-     * @return a result
+     * @param <T> the type of the input and output of the operator
+     * @return a unary operator that always returns its input argument
      */
-    @continuable T get();
+    static <T> SuspendableUnaryOperator<T> identity() {
+        return new SuspendableUnaryOperator<T>() {
+            @Override
+            public T apply(T value) {
+                return value;
+            }
+        };
+    }
 }

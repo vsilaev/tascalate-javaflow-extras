@@ -22,7 +22,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util;
+package net.tascalate.javaflow;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -35,9 +35,9 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.javaflow.api.Continuation;
 import org.apache.commons.javaflow.api.continuable;
 
-import net.tascalate.javaflow.util.function.SuspendableConsumer;
-import net.tascalate.javaflow.util.function.SuspendableFunction;
-import net.tascalate.javaflow.util.function.SuspendableRunnable;
+import net.tascalate.javaflow.function.SuspendableConsumer;
+import net.tascalate.javaflow.function.SuspendableFunction;
+import net.tascalate.javaflow.function.SuspendableRunnable;
 
 final public class Continuations {
     

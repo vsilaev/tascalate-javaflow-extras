@@ -22,7 +22,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.tascalate.javaflow.util;
+package net.tascalate.javaflow;
 
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
@@ -33,11 +33,11 @@ import java.util.function.Supplier;
 
 import org.apache.commons.javaflow.api.continuable;
 
-import net.tascalate.javaflow.util.function.SuspendableBiFunction;
-import net.tascalate.javaflow.util.function.SuspendableConsumer;
-import net.tascalate.javaflow.util.function.SuspendableFunction;
-import net.tascalate.javaflow.util.function.SuspendablePredicate;
-import net.tascalate.javaflow.util.function.SuspendableSupplier;
+import net.tascalate.javaflow.function.SuspendableBiFunction;
+import net.tascalate.javaflow.function.SuspendableConsumer;
+import net.tascalate.javaflow.function.SuspendableFunction;
+import net.tascalate.javaflow.function.SuspendablePredicate;
+import net.tascalate.javaflow.function.SuspendableSupplier;
 
 public abstract class Option<T> {
     // Package visible to restrict inheritance
