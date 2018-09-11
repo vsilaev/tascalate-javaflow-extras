@@ -138,20 +138,22 @@ public class SuspendableStream<T> implements AutoCloseable {
 
     public static <T> SuspendableStream<T> iterate(T seed, UnaryOperator<T> f) {
         return new SuspendableStream<>(new RootProducer<T>() {
-            Option<T> current = Option.none();
+            Option<T> current = null;
             @Override
             public Option<T> produce() {
-                return current.exists() ? current.map(f) : Option.some(seed);
+                current = null == current ? Option.some(seed) : current.map(f);
+                return current;
             }
         });
     }
     
     public static <T> SuspendableStream<T> iterate$(T seed, SuspendableUnaryOperator<T> f) {
         return new SuspendableStream<>(new RootProducer<T>() {
-            Option<T> current = Option.none();
+            Option<T> current = null;
             @Override
             public Option<T> produce() {
-                return current.exists() ? current.map$(f) : Option.some(seed);
+                current = null == current ? Option.some(seed) : current.map$(f);
+                return current;
             }
         });
     }

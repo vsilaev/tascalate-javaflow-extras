@@ -287,7 +287,7 @@ final public class Continuations {
      * @param coroutine a coroutine that yields multiple results
      * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void forEach$(Continuation coroutine, SuspendableConsumer<? super T> action) {
+    public static @continuable <T> void forEach$(Continuation coroutine, SuspendableConsumer<? super T> action) {
         forEach$(coroutine, false, action);
     }
     
@@ -301,7 +301,7 @@ final public class Continuations {
      * @param useCurrentValue should the current coroutine result be used as a first value to process
      * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void forEach$(Continuation coroutine, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
+    public static @continuable <T> void forEach$(Continuation coroutine, boolean useCurrentValue, SuspendableConsumer<? super T> action) {
         try (CloseableIterator<T> iter = iteratorOf(coroutine, useCurrentValue)) {
             forEach$(iter, action);
         }
@@ -315,7 +315,7 @@ final public class Continuations {
      * @param coroutine a coroutine that yields multiple results
      * @param action a continuable action to perform on the values emitted
      */
-    public static @continuable<T> void forEach$(SuspendableRunnable coroutine, SuspendableConsumer<? super T> action) {
+    public static @continuable <T> void forEach$(SuspendableRunnable coroutine, SuspendableConsumer<? super T> action) {
         forEach$(create(coroutine), false, action);
     }
     
@@ -336,7 +336,7 @@ final public class Continuations {
      * @param action a non-continuable function that is applied to values emitted and provides argument to
      * resume coroutine.
      */      
-    public static @continuable<T> void forEachReply$(Continuation coroutine, SuspendableFunction<? super T, ?> action) {
+    public static @continuable <T> void forEachReply$(Continuation coroutine, SuspendableFunction<? super T, ?> action) {
         forEachReply$(coroutine, false, action);
     }
     
@@ -358,7 +358,7 @@ final public class Continuations {
      * @param action a non-continuable function that is applied to values emitted and provides argument to
      * resume coroutine.
      */    
-    public static @continuable<T> void forEachReply$(Continuation coroutine, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
+    public static @continuable <T> void forEachReply$(Continuation coroutine, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
         Continuation cc = coroutine;
         try {
             Object param = null;
@@ -394,7 +394,7 @@ final public class Continuations {
      * @param action a non-continuable function that is applied to values emitted and provides argument to
      * resume coroutine.
      */       
-    public static @continuable<T> void forEachReply$(SuspendableRunnable coroutine, SuspendableFunction<? super T, ?> action) {
+    public static @continuable <T> void forEachReply$(SuspendableRunnable coroutine, SuspendableFunction<? super T, ?> action) {
         forEachReply$(create(coroutine), action);
     }    
 
@@ -408,7 +408,7 @@ final public class Continuations {
      * @param stream the stream to perform an action on
      * @param action a continuable action to perform on the elements
      */    
-    public static @continuable<T> void forEach$(Stream<T> stream, SuspendableConsumer<? super T> action) {
+    public static @continuable <T> void forEach$(Stream<T> stream, SuspendableConsumer<? super T> action) {
         forEach$(stream.iterator(), action);
     }
 
@@ -422,7 +422,7 @@ final public class Continuations {
      * @param iterable the iterable to perform an action on
      * @param action a continuable action to perform on the elements
      */   
-    public static @continuable<T> void forEach$(Iterable<T> iterable, SuspendableConsumer<? super T> action) {
+    public static @continuable <T> void forEach$(Iterable<T> iterable, SuspendableConsumer<? super T> action) {
         Iterator<T> iter = iterable.iterator();
         try (CloseableIterator<T> closeable = asCloseable(iter)) {
             forEach$(iter, action);
@@ -439,7 +439,7 @@ final public class Continuations {
      * @param iterator the iterator to perform an action on
      * @param action a continuable action to perform on the elements
      */ 
-    private @continuable static <T> void forEach$(Iterator<T> iterator, SuspendableConsumer<? super T> action) {
+    private static @continuable <T> void forEach$(Iterator<T> iterator, SuspendableConsumer<? super T> action) {
         while (iterator.hasNext()) {
             action.accept(iterator.next());
         }
