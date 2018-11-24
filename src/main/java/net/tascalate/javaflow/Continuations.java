@@ -49,7 +49,52 @@ final public class Continuations {
      * @return the continuation, suspended before code starts
      */
     public static Continuation create(SuspendableRunnable o) {
-        return Continuation.startSuspendedWith(toRunnable(o));
+        return create(o, false);
+    }
+    
+    /**
+     * Creates a suspended continuation, {@link SuspendableRunnable} is not started
+     * @param o a continuable code block 
+     * @param optimized
+     *      If true then continuation constructed is performance-optimized but 
+     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      be resumed multiple times. 
+     * @return the continuation, suspended before code starts
+     */
+    public static Continuation create(SuspendableRunnable o, boolean optimized) {
+        return Continuation.startSuspendedWith(toRunnable(o), optimized);
+    }
+    
+
+    /**
+     * Starts {@link SuspendableRunnable} code block and returns a continuation, 
+     * corresponding to the first {@link Continuation#suspend()} call inside this code block 
+     * (incl. nested continuable method calls), if any exists. Returns null if the code
+     * is not suspended.
+     * 
+     * @param o a continuable code block
+     * @return the first continuation suspended
+     */
+    public static Continuation start(SuspendableRunnable o) {
+        return start(o, false);
+    }
+    
+
+    /**
+     * Starts {@link SuspendableRunnable} code block and returns a continuation, 
+     * corresponding to the first {@link Continuation#suspend()} call inside this code block 
+     * (incl. nested continuable method calls), if any exists. Returns null if the code
+     * is not suspended.
+     * 
+     * @param o a continuable code block
+     * @param optimized
+     *      If true then continuation constructed is performance-optimized but 
+     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      be resumed multiple times.   
+     * @return the first continuation suspended
+     */
+    public static Continuation start(SuspendableRunnable o, boolean optimized) {
+        return start(o, null, optimized);
     }
 
     /**
@@ -63,9 +108,9 @@ final public class Continuations {
      * @return the first continuation suspended
      */
     public static Continuation start(SuspendableRunnable o, Object ctx) {
-        return Continuation.startWith(toRunnable(o), ctx);
+        return start(o, ctx, false);
     }
-
+    
     /**
      * Starts {@link SuspendableRunnable} code block and returns a continuation, 
      * corresponding to the first {@link Continuation#suspend()} call inside this code block 
@@ -73,11 +118,17 @@ final public class Continuations {
      * is not suspended.
      * 
      * @param o a continuable code block
+     * @param ctx an initial argument for the continuable code
+     * @param optimized
+     *      If true then continuation constructed is performance-optimized but 
+     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      be resumed multiple times. 
      * @return the first continuation suspended
      */
-    public static Continuation start(SuspendableRunnable o) {
-        return Continuation.startWith(toRunnable(o));
+    public static Continuation start(SuspendableRunnable o, Object ctx, boolean optimized) {
+        return Continuation.startWith(toRunnable(o), ctx, optimized);
     }
+
 
     /**
      * <p>Convert a <code>coroutine</code> to the {@link Iterator} of emitted values
@@ -101,7 +152,7 @@ final public class Continuations {
      * @return the iterator over emitted values
      */
     public static <T> CloseableIterator<T> iteratorOf(Continuation coroutine, boolean useCurrentValue) {
-        return new ContinuationIterator<>(coroutine, useCurrentValue);
+        return new ContinuationIterator<>(coroutine.optimized(), useCurrentValue);
     }
     
 
@@ -113,7 +164,7 @@ final public class Continuations {
      * @return the iterator over emitted values
      */    
     public static <T> CloseableIterator<T> iteratorOf(SuspendableRunnable coroutine) {
-        return iteratorOf(create(coroutine), false);
+        return iteratorOf(create(coroutine, true), false);
     }
     
     /**
@@ -152,7 +203,7 @@ final public class Continuations {
      * @return the iterator over emitted values
      */   
     public static <T> Stream<T> streamOf(SuspendableRunnable coroutine) {
-        return streamOf(create(coroutine), false);
+        return streamOf(create(coroutine, true), false);
     }
 
     /**
@@ -195,7 +246,7 @@ final public class Continuations {
      * @param action a non-continuable action to perform on the values emitted
      */
     public static <T> void forEach(SuspendableRunnable coroutine, Consumer<? super T> action) {
-        forEach(create(coroutine), action);
+        forEach(create(coroutine, true), action);
     }
 
     
@@ -239,7 +290,7 @@ final public class Continuations {
      * resume coroutine.
      */    
     public static <T> void forEachReply(Continuation coroutine, boolean useCurrentValue, Function<? super T, ?> action) {
-        Continuation cc = coroutine;
+        Continuation cc = coroutine.optimized();
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
@@ -275,7 +326,7 @@ final public class Continuations {
      * resume continuation.
      */       
     public static <T> void forEachReply(SuspendableRunnable coroutine, Function<? super T, ?> action) {
-        forEachReply(create(coroutine), action);
+        forEachReply(create(coroutine, true), action);
     }
     
     /**
@@ -316,7 +367,7 @@ final public class Continuations {
      * @param action a continuable action to perform on the values emitted
      */
     public static @continuable <T> void forEach$(SuspendableRunnable coroutine, SuspendableConsumer<? super T> action) {
-        forEach$(create(coroutine), false, action);
+        forEach$(create(coroutine, true), false, action);
     }
     
     /**
@@ -359,7 +410,7 @@ final public class Continuations {
      * resume coroutine.
      */    
     public static @continuable <T> void forEachReply$(Continuation coroutine, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
-        Continuation cc = coroutine;
+        Continuation cc = coroutine.optimized();
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
@@ -395,7 +446,7 @@ final public class Continuations {
      * resume coroutine.
      */       
     public static @continuable <T> void forEachReply$(SuspendableRunnable coroutine, SuspendableFunction<? super T, ?> action) {
-        forEachReply$(create(coroutine), action);
+        forEachReply$(create(coroutine, true), action);
     }    
 
     /**

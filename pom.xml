@@ -42,7 +42,7 @@
 	</contributors>
 
 	<properties>
-		<tascalate.javaflow.version>2.3.2</tascalate.javaflow.version>
+		<tascalate.javaflow.version>2.3.3-SNAPSHOT</tascalate.javaflow.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
