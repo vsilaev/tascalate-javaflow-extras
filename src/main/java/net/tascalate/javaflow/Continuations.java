@@ -55,14 +55,14 @@ final public class Continuations {
     /**
      * Creates a suspended continuation, {@link SuspendableRunnable} is not started
      * @param o a continuable code block 
-     * @param optimized
+     * @param singleShot
      *      If true then continuation constructed is performance-optimized but 
-     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      may be resumed only once. Otherwise multi-shot continuation is created that may 
      *      be resumed multiple times. 
      * @return the continuation, suspended before code starts
      */
-    public static Continuation create(SuspendableRunnable o, boolean optimized) {
-        return Continuation.startSuspendedWith(toRunnable(o), optimized);
+    public static Continuation create(SuspendableRunnable o, boolean singleShot) {
+        return Continuation.startSuspendedWith(toRunnable(o), singleShot);
     }
     
 
@@ -87,14 +87,14 @@ final public class Continuations {
      * is not suspended.
      * 
      * @param o a continuable code block
-     * @param optimized
+     * @param singleShot
      *      If true then continuation constructed is performance-optimized but 
-     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      may be resumed only once. Otherwise multi-shot continuation is created that may 
      *      be resumed multiple times.   
      * @return the first continuation suspended
      */
-    public static Continuation start(SuspendableRunnable o, boolean optimized) {
-        return start(o, null, optimized);
+    public static Continuation start(SuspendableRunnable o, boolean singleShot) {
+        return start(o, null, singleShot);
     }
 
     /**
@@ -119,14 +119,14 @@ final public class Continuations {
      * 
      * @param o a continuable code block
      * @param ctx an initial argument for the continuable code
-     * @param optimized
+     * @param singleShot
      *      If true then continuation constructed is performance-optimized but 
-     *      may be resumed only once. Otherwise "restartable" continuation is created that may 
+     *      may be resumed only once. Otherwise multi-shot continuation is created that may 
      *      be resumed multiple times. 
      * @return the first continuation suspended
      */
-    public static Continuation start(SuspendableRunnable o, Object ctx, boolean optimized) {
-        return Continuation.startWith(toRunnable(o), ctx, optimized);
+    public static Continuation start(SuspendableRunnable o, Object ctx, boolean singleShot) {
+        return Continuation.startWith(toRunnable(o), ctx, singleShot);
     }
 
 
@@ -152,7 +152,7 @@ final public class Continuations {
      * @return the iterator over emitted values
      */
     public static <T> CloseableIterator<T> iteratorOf(Continuation coroutine, boolean useCurrentValue) {
-        return new ContinuationIterator<>(coroutine.optimized(), useCurrentValue);
+        return new ContinuationIterator<>(coroutine.singleShot(), useCurrentValue);
     }
     
 
@@ -290,7 +290,7 @@ final public class Continuations {
      * resume coroutine.
      */    
     public static <T> void forEachReply(Continuation coroutine, boolean useCurrentValue, Function<? super T, ?> action) {
-        Continuation cc = coroutine.optimized();
+        Continuation cc = coroutine.singleShot();
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
@@ -410,7 +410,7 @@ final public class Continuations {
      * resume coroutine.
      */    
     public static @continuable <T> void forEachReply$(Continuation coroutine, boolean useCurrentValue, SuspendableFunction<? super T, ?> action) {
-        Continuation cc = coroutine.optimized();
+        Continuation cc = coroutine.singleShot();
         try {
             Object param = null;
             if (null != cc && useCurrentValue) {
