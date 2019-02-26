@@ -2,3 +2,5 @@
 
 # Tascalate JavaFlow Extras
 Continuations / CoRoutines for Java 8+. This library is an add-on to [Tascalate Javaflow](https://github.com/vsilaev/tascalate-javaflow) continuations library. It provides suspendable version of java.util.Stream, java.util.Iterator, java.util.function.*  and helper classes to work with continuations.
+
+Starting from version 2.4.0 the library is shipped as a multi-release JAR that may be used as a module with Java 9 and above.
