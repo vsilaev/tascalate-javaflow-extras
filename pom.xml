@@ -120,8 +120,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>net.tascalate.javaflow</groupId>
-			<artifactId>net.tascalate.javaflow.api</artifactId>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>${project.groupId}.api</artifactId>
 			<version>${tascalate.javaflow.version}</version>
 			<optional>true</optional>
 		</dependency>
@@ -215,8 +215,8 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>net.tascalate.javaflow</groupId>
-				<artifactId>net.tascalate.javaflow.tools.maven</artifactId>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>${project.groupId}.tools.maven</artifactId>
 				<version>${tascalate.javaflow.version}</version>
 				<executions>
 					<execution>
@@ -254,8 +254,8 @@
 							<pluginExecutions>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>net.tascalate.javaflow</groupId>
-										<artifactId>net.tascalate.javaflow.tools.maven</artifactId>
+										<groupId>${project.groupId}</groupId>
+										<artifactId>${project.groupId}.tools.maven</artifactId>
 										<versionRange>[2.0.0,)</versionRange>
 										<goals>
 											<goal>javaflow-enhance</goal>
