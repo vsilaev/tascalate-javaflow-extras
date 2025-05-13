@@ -89,14 +89,14 @@ public class SuspendableStream<T> implements AutoCloseable {
     }
     
     public static <T> SuspendableStream<T> of(Iterable<? extends T> values) {
-        return of(values.iterator());
+        return of(values.iterator(), values instanceof AutoCloseable ? (AutoCloseable)values : null);
     }
     
     public static <T> SuspendableStream<T> of(Stream<? extends T> values) {
-        return of(values.iterator());
+        return of(values.iterator(), values);
     }
     
-    private static <T> SuspendableStream<T> of(Iterator<? extends T> values) {
+    private static <T> SuspendableStream<T> of(Iterator<? extends T> values, AutoCloseable closeable) {
         return new SuspendableStream<>(new RootProducer<T>() {
             @Override
             public Option<T> produce() {
@@ -104,6 +104,17 @@ public class SuspendableStream<T> implements AutoCloseable {
                     return Option.some(values.next());
                 } else {
                     return Option.none();
+                }
+            }
+            
+            @Override 
+            public void close() {
+                if (null != closeable) {
+                    try {
+                        closeable.close();
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         });
