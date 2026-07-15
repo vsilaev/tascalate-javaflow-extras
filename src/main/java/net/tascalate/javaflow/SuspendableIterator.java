@@ -24,9 +24,11 @@
  */
 package net.tascalate.javaflow;
 
+import java.util.Iterator;
+
 import org.apache.commons.javaflow.api.continuable;
 
-public interface SuspendableIterator<T> extends AutoCloseable {
+public interface SuspendableIterator<T> extends Iterator<T>, AutoCloseable {
     @continuable T next();
     @continuable boolean hasNext();
     void close();

@@ -46,7 +46,7 @@ import net.tascalate.javaflow.function.SuspendablePredicate;
 import net.tascalate.javaflow.function.SuspendableSupplier;
 import net.tascalate.javaflow.function.SuspendableUnaryOperator;
 
-public class SuspendableStream<T> implements AutoCloseable {
+public class SuspendableStream<T> implements Iterable<T>, AutoCloseable {
     
     protected static final SuspendableStream<Object> EMPTY = new SuspendableStream<>(new SuspendableProducer<Object>() {
         
@@ -596,7 +596,7 @@ public class SuspendableStream<T> implements AutoCloseable {
         return converter.apply(producer);
     }
     
-    public SuspendableIterator<T> iterator() {
+    public @continuable SuspendableIterator<T> iterator() {
         return new StreamIterator();
     }
 
